@@ -32,8 +32,8 @@ const AuthProvider: React.FC = ({ children }) => {
   useEffect(() => {
     async function loadStorageDara(): Promise<void> {
       const [token, citizen] = await AsyncStorage.multiGet([
-        '@GoBarber:token',
-        '@GoBarber:citizen',
+        '@CityAction:token',
+        '@CityAction:citizen',
       ]);
 
       if (token[1] && citizen[1]) {
@@ -46,25 +46,26 @@ const AuthProvider: React.FC = ({ children }) => {
   }, []);
 
   const signIn = useCallback(async ({ email, password }) => {
-    console.log(email, password);
-    const response = await api.post('Account/login', {
+    const response = await api.post('api/Account/login', {
       email,
       password,
     });
-    console.log('aqui');
 
-    const { token, citizen } = response.data;
+    const { token, citizen } = response.data.data;
 
     await AsyncStorage.multiSet([
-      ['@GoBarber:token', token],
-      ['@GoBarber:citizen', JSON.stringify(citizen)],
+      ['@CityAction:token', token],
+      ['@CityAction:citizen', JSON.stringify(citizen)],
     ]);
 
     setData({ token, citizen });
   }, []);
 
   const signOut = useCallback(async () => {
-    await AsyncStorage.multiRemove(['@GoBarber:token', '@GoBarber:citizen']);
+    await AsyncStorage.multiRemove([
+      '@CityAction:token',
+      '@CityAction:citizen',
+    ]);
 
     setData({} as AuthState);
   }, []);
@@ -81,7 +82,6 @@ const AuthProvider: React.FC = ({ children }) => {
 function useAuth(): AuthContextData {
   const context = useContext(AuthContext);
 
-  // verifca se o contexto foi criado
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
