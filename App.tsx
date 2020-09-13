@@ -22,12 +22,12 @@ const MyTheme = {
 };
 
 const App: React.FC = () => {
-  const [fontsLoaded] = useFonts({
+  const [loaded] = useFonts({
     Roboto_400Regular,
     Roboto_500Medium,
   });
 
-  if (!fontsLoaded) {
+  if (!loaded) {
     return <AppLoading />;
   }
 

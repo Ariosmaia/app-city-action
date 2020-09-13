@@ -2,8 +2,8 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { AntDesign, FontAwesome5 } from '@expo/vector-icons';
 
+import NewTicketRoutes from './new-ticket.routes';
 import OpenTicketsButton from '../components/OpenTicketsButton';
-import OpenTicket from '../pages/OpenTicket';
 import Configurations from '../pages/Configurations';
 import MyTickets from '../pages/MyTickets';
 import Profile from '../pages/Profile';
@@ -15,6 +15,7 @@ interface Icons {
   [Key: string]: {
     lib: any;
     name: string;
+    route: string;
   };
 }
 
@@ -22,32 +23,38 @@ const icons: Icons = {
   Configurations: {
     lib: AntDesign,
     name: 'setting',
+    route: 'Configurations',
   },
   Tickets: {
     lib: FontAwesome5,
     name: 'map-marked-alt',
+    route: 'Tickets',
   },
-
   MyTickets: {
     lib: FontAwesome5,
     name: 'map-marker',
+    route: 'MyTickets',
   },
   Profile: {
     lib: AntDesign,
     name: 'user',
+    route: 'Profile',
   },
 };
 
 const AppRoutes: React.FC = () => {
   return (
     <Tab.Navigator
-      initialRouteName="OpenTicket"
+      initialRouteName="NewTickets"
       screenOptions={({ route, navigation }) => ({
+        keyboardHidesTabBar: true,
+        unmountOnBlur: true,
+
         tabBarIcon: ({ color, size, focused }) => {
-          if (route.name === 'OpenTicket') {
+          if (route.name === 'NewTickets') {
             return (
               <OpenTicketsButton
-                onPress={() => navigation.navigate('OpenTicket')}
+                onPress={() => navigation.navigate('NewTickets')}
                 focused={focused}
               />
             );
@@ -81,8 +88,8 @@ const AppRoutes: React.FC = () => {
         }}
       />
       <Tab.Screen
-        name="OpenTicket"
-        component={OpenTicket}
+        name="NewTickets"
+        component={NewTicketRoutes}
         options={{
           title: '',
         }}
