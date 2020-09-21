@@ -81,10 +81,20 @@ const Points: React.FC = () => {
     })
   }, [selectedItems])
 
+  function handleNavigateBack()
+  {
+      navigation.goBack();
+  }
+
   return (
     <>
       <Background />
       <View style={styles.container}>
+
+        <TouchableOpacity onPress={handleNavigateBack}>
+          <Icon name="arrow-left" size={20} color="#34cb79"/>
+        </TouchableOpacity>
+
         <Text style={styles.title}>Bem vindo.</Text>
         <Text style={styles.description}>Encontre no mapa os chamados abertos</Text>
 
@@ -93,18 +103,56 @@ const Points: React.FC = () => {
             <MapView
               style={styles.map}
               initialRegion={{
-                latitude: initialPosition[0],
-                longitude: initialPosition[1],
+                // latitude: initialPosition[0],
+                // longitude: initialPosition[1],
+                latitude: -23.5608844,
+                longitude: -46.6590967,
                 latitudeDelta: 0.014,
                 longitudeDelta: 0.014,
               }}>
-              {points.map(point => (
+
+                <Marker
+                  coordinate={{
+                    latitude: -23.5631043,
+                    longitude: -46.6543825,
+                  }}>
+                     <View style={styles.mapMarkerContainer}>
+                    <Text style={styles.mapMarkerTitle}>vazamento de água</Text>
+                  </View>
+									<View style={styles.mapMarkerArrow}/>
+                </Marker>
+
+                <Marker
+                  coordinate={{
+                    latitude: -23.5608844,
+                    longitude: -46.6590967,
+                  }}>
+                     <View style={styles.mapMarkerContainer}>
+                    <Text style={styles.mapMarkerTitle}>buraco na rua</Text>
+                  </View>
+									<View style={styles.mapMarkerArrow}/>
+                </Marker>
+
+                <Marker
+                  coordinate={{
+                    latitude: -23.5567241,
+                    longitude: -46.6637097,
+                  }}>
+                   <View style={styles.mapMarkerContainer}>
+                    <Text style={styles.mapMarkerTitle}>sujeira na rua</Text>
+                  </View>
+									<View style={styles.mapMarkerArrow}/>
+                </Marker>
+
+              {/* {points.map(point => (
                 <Marker
                   key={point.id}
                   style={styles.mapMarker}
                   coordinate={{
                     latitude: point.latitude,
                     longitude: point.longitude,
+                    // latitude: -23.6489236,
+                    // longitude: -46.6394532,
                   }}>
                   <View style={styles.mapMarkerContainer}>
                     <Image style={styles.mapMarkerImage} source={{ uri: point.image_url }} />
@@ -112,7 +160,7 @@ const Points: React.FC = () => {
                   </View>
 									<View style={styles.mapMarkerArrow}/>
                 </Marker>
-              ))}
+              ))} */}
             </MapView>
           )}
         </View>
@@ -185,9 +233,9 @@ const styles = StyleSheet.create({
   },
 
   mapMarkerContainer: {
-    width: 90,
-    height: 70,
-    backgroundColor: '#34CB79',
+    width: 150,
+    height: 20,
+    backgroundColor: '#8000FF',
     flexDirection: 'column',
     borderRadius: 8,
     overflow: 'hidden',
