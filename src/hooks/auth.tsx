@@ -10,17 +10,23 @@ import api from '../services/api';
 
 interface AuthState {
   token: string;
-  citizen: object;
+  citizen: CitizenData;
 }
 interface SignInCredentials {
   email: string;
   password: string;
 }
 interface AuthContextData {
-  citizen: object;
+  citizen: CitizenData;
   loading: boolean;
+  token: string;
   signIn(credentials: SignInCredentials): Promise<void>;
   signOut(): void;
+}
+
+interface CitizenData {
+  id: string;
+  name: string;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -72,7 +78,7 @@ const AuthProvider: React.FC = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ citizen: data.citizen, loading, signIn, signOut }}
+      value={{ citizen: data.citizen, loading, signIn, signOut, token:data.token }}
     >
       {children}
     </AuthContext.Provider>

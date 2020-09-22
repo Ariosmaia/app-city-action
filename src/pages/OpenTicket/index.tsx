@@ -1,22 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import Constants from 'expo-constants';
 import { Feather as Icon } from '@expo/vector-icons';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, useIsFocused } from '@react-navigation/native';
 import { StyleSheet, Button, View, Image, TouchableOpacity, Text, ScrollView, Alert } from 'react-native';
 import MapView, { Marker, LocalTile  } from 'react-native-maps';
 import { SvgUri } from 'react-native-svg';
 import * as Location from 'expo-location';
 import { Background } from './styles';
 import axios from 'axios';
-
 interface Point {
   _id: string;
   citizen_id: string;
 	citizen_name: string;
 	ticket_type: string;
-  location: 
+  location:
   {
-    coordinates: [number, number] 
+    coordinates: [number, number]
   };
 }
 
@@ -25,6 +24,7 @@ const Points: React.FC = () => {
   const [initialPosition, setInitialPosition] = useState<[number, number]>([0, 0]);
   const [selectedCoordinate, setCoordinate] = useState<[number, number]>([0, 0]);
 
+  const isFocused = useIsFocused();
 	const navigation = useNavigation();
 	const route = useRoute();
 
@@ -49,7 +49,7 @@ const Points: React.FC = () => {
       ]);
 
 
-      axios.get('http://192.168.0.6:3333/search', {
+      axios.get('http://192.168.15.18:3333/search', {
       params: {
           latitude: latitude,
           longitude: longitude
@@ -60,9 +60,10 @@ const Points: React.FC = () => {
       });
 
     }
-
-    loadPosition();
-  }, [])
+    if(isFocused){
+      loadPosition();
+    }
+  }, [isFocused])
 
   function handleNavigateBack()
   {
@@ -78,9 +79,9 @@ const Points: React.FC = () => {
       citizen_id: "",
       citizen_name: "teste",
       ticket_type: "erro teste",
-      location: 
+      location:
       {
-        coordinates: [coordinate.latitude,coordinate.longitude] 
+        coordinates: [coordinate.latitude,coordinate.longitude]
       }
     };
 
@@ -134,7 +135,7 @@ const Points: React.FC = () => {
                   }}>
                   <View style={styles.mapMarkerContainer}>
                     <Text style={styles.mapMarkerTitle}>{point.ticket_type}</Text>
-                  </View> 
+                  </View>
 									{/* <View style={styles.mapMarkerArrow}/> */}
                 </Marker>
                 )
@@ -212,7 +213,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 23
 	},
-	
+
 	// mapMarkerArrow: {
 	// 	position: "absolute",
 	// 	borderTopWidth: 40,
