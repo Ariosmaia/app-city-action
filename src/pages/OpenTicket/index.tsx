@@ -64,7 +64,7 @@ const OpenTicket: React.FC = () => {
       setInitialPosition([latitude, longitude]);
 
       axios
-        .get('https://city-action.herokuapp.com/tickets/search', {
+        .get('https://city-action.herokuapp.com/search', {
           params: {
             latitude,
             longitude,

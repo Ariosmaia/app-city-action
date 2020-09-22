@@ -1,8 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
-import api from '../../services/api'
-
-import { useAuth } from '../../hooks/auth';
 
 import {
   View,
@@ -11,7 +8,7 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   ScrollView,
-  Alert
+  Alert,
 } from 'react-native';
 
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -19,6 +16,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { TouchableOpacity, State } from 'react-native-gesture-handler';
 
+import { AppLoading } from 'expo';
 import {
   Container,
   InputView,
@@ -27,24 +25,24 @@ import {
   ButtonConfirm,
   ButtonText,
   Title,
-  Header
-} from '../RegisterTicket/styles';
-import { AppLoading } from 'expo';
+  Header,
+} from './styles';
+import { useAuth } from '../../hooks/auth';
+import api from '../../services/api';
 
 interface Params {
-  coordinate:
-  {
-    latitude: number,
-    longitude: number
+  coordinate: {
+    latitude: number;
+    longitude: number;
   };
 }
 
 interface TicketContext {
-  description: string,
-  localization: string,
-  ticketStatusId: string,
-  ticketTypeId: string,
-  serviceProviderId: string
+  description: string;
+  localization: string;
+  ticketStatusId: string;
+  ticketTypeId: string;
+  serviceProviderId: string;
 }
 
 interface CitizenData {
@@ -55,29 +53,28 @@ interface CitizenData {
 const RegisterTicket: React.FC = () => {
   const navigation = useNavigation();
 
-
-  const [description, setDescription ] = useState('');
-  const [localization, setLocalization ] = useState('');
-  const [ticketStatusId, setTicketStatusId ] = useState('');
+  const [description, setDescription] = useState('');
+  const [localization, setLocalization] = useState('');
+  const [ticketStatusId, setTicketStatusId] = useState('');
   const [serviceProvider, setServiceProvider] = useState('');
   const [ticketType, setTicketType] = useState([]);
 
   const route = useRoute();
-  const {token, citizen} = useAuth();
+  const { token, citizen } = useAuth();
 
   const routeParams = route.params as Params;
 
   useEffect(() => {
     console.log('params', routeParams.coordinate);
-  }, [])
+  }, []);
 
-  async function handleCreateTicket(){
+  async function handleCreateTicket() {
     const ticket = {
-       description: description,
-       localization: `${ routeParams.coordinate.latitude },${ routeParams.coordinate.longitude }`,
-       ticketStatusId: "89BCCF2C-631B-41A3-AF17-6865444A4EFE",
-       ticketTypeId: ticketType,
-       serviceProviderId: serviceProvider
+      description,
+      localization: `${routeParams.coordinate.latitude},${routeParams.coordinate.longitude}`,
+      ticketStatusId: '89BCCF2C-631B-41A3-AF17-6865444A4EFE',
+      ticketTypeId: ticketType,
+      serviceProviderId: serviceProvider,
     };
     // console.log(ticket);
     const ticketMongo = {
@@ -85,25 +82,24 @@ const RegisterTicket: React.FC = () => {
       citizen_name: citizen.name,
       ticket_type: 'Vazamento de água 2',
       latitude: routeParams.coordinate.latitude,
-      longitude: routeParams.coordinate.longitude
+      longitude: routeParams.coordinate.longitude,
     };
 
     try {
-
-       console.log('chegou!',token);
-       api.defaults.headers.Authorization = `Bearer ${token}`
-       const[tickets,ticketsMongo] = await Promise.all([
-          api.post('tickets', ticket),
-          axios.post('http://192.168.15.18:3333/tickets',ticketMongo)
-
-       ]);
+      console.log('chegou!', token);
+      api.defaults.headers.Authorization = `Bearer ${token}`;
+      const [tickets, ticketsMongo] = await Promise.all([
+        api.post('tickets', ticket),
+        axios.post('https://city-action.herokuapp.com/tickets', ticketMongo),
+      ]);
       //  console.log(response.data);
-        navigation.navigate('OpenTicket');
-
-    }catch(err){
-        Alert.alert('Ocorreu um erro ao cadastrar o seu chamado., Tente novamente.');
+      navigation.navigate('OpenTicket');
+    } catch (err) {
+      Alert.alert(
+        'Ocorreu um erro ao cadastrar o seu chamado., Tente novamente.',
+      );
     }
-  };
+  }
 
   navigation.setOptions({
     title: 'Abrir chamado',
@@ -134,38 +130,49 @@ const RegisterTicket: React.FC = () => {
           <Container>
             <InputView>
               <Picker
-              style={{color: '#f0e7fd'}}
-              selectedValue = {serviceProvider}
-              onValueChange={
-                (itemValor, itemIndex) => {setServiceProvider(itemValor)}}>
-                <Picker.Item label="" value = '0' />
-                <Picker.Item label="Sabesp" value = '89BCCF2C-631B-41A3-AF17-6865444A4EFE' />
+                style={{ color: '#f0e7fd' }}
+                selectedValue={serviceProvider}
+                onValueChange={(itemValor, itemIndex) => {
+                  setServiceProvider(itemValor);
+                }}
+              >
+                <Picker.Item label="" value="0" />
+                <Picker.Item
+                  label="Sabesp"
+                  value="89BCCF2C-631B-41A3-AF17-6865444A4EFE"
+                />
               </Picker>
             </InputView>
             <InputView>
               <Picker
-                style={{color: '#f0e7fd'}}
-                selectedValue = {ticketType}
-                onValueChange={
-                  (itemValor, itemIndex) => {setTicketType(itemValor)}}>
-                  <Picker.Item label="" value = "0" />
-                  <Picker.Item label="Vazamento de água" value = "2F810939-F524-404B-A0D1-05D59CE1AA02" />
-                  <Picker.Item label="Falta de água" value = "AFCB44D2-5846-46FD-B708-884D17F0F281" />
-                </Picker>
+                style={{ color: '#f0e7fd' }}
+                selectedValue={ticketType}
+                onValueChange={(itemValor, itemIndex) => {
+                  setTicketType(itemValor);
+                }}
+              >
+                <Picker.Item label="" value="0" />
+                <Picker.Item
+                  label="Vazamento de água"
+                  value="2F810939-F524-404B-A0D1-05D59CE1AA02"
+                />
+                <Picker.Item
+                  label="Falta de água"
+                  value="AFCB44D2-5846-46FD-B708-884D17F0F281"
+                />
+              </Picker>
             </InputView>
-              <View><TitleDescription>Descrição</TitleDescription></View>
+            <View>
+              <TitleDescription>Descrição</TitleDescription>
+            </View>
             <InputView>
               <TextInput
-                value = {description}
+                value={description}
                 onChangeText={text => setDescription(text)}
               />
             </InputView>
             <ButtonConfirm>
-              <ButtonText
-                onPress={handleCreateTicket}
-              >
-                Cadastrar
-              </ButtonText>
+              <ButtonText onPress={handleCreateTicket}>Cadastrar</ButtonText>
             </ButtonConfirm>
           </Container>
         </ScrollView>
