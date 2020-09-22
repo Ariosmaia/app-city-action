@@ -3,43 +3,30 @@ import Constants from 'expo-constants';
 import { Feather as Icon } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { StyleSheet, Button, View, Image, TouchableOpacity, Text, ScrollView, Alert } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, LocalTile  } from 'react-native-maps';
 import { SvgUri } from 'react-native-svg';
 import * as Location from 'expo-location';
-import api from '../../services/api';
 import { Background } from './styles';
-
-interface Item {
-  id: number;
-  title: string;
-  image_url: string;
-}
+import axios from 'axios';
 
 interface Point {
-  id: number;
-  name: string;
-	image: string;
-	image_url: string;
-  latitude: number;
-  longitude: number;
-}
-
-interface Params {
-	selectedUf: string;
-	selectdCity: string;
+  _id: string;
+  citizen_id: string;
+	citizen_name: string;
+	ticket_type: string;
+  location: 
+  {
+    coordinates: [number, number] 
+  };
 }
 
 const Points: React.FC = () => {
-  const [items, setItems] = useState<Item[]>([]);
   const [points, setPoints] = useState<Point[]>([]);
-  const [selectedItems, setSelectedItems] = useState<number[]>([]);
-
   const [initialPosition, setInitialPosition] = useState<[number, number]>([0, 0]);
+  const [selectedCoordinate, setCoordinate] = useState<[number, number]>([0, 0]);
 
 	const navigation = useNavigation();
 	const route = useRoute();
-
-	const routeParams = route.params as Params;
 
   useEffect(() => {
     async function loadPosition() {
@@ -54,36 +41,59 @@ const Points: React.FC = () => {
 
       const { latitude, longitude } = location.coords;
 
+      // console.log('teste3', latitude, longitude)
+
       setInitialPosition([
         latitude,
         longitude,
       ]);
+
+
+      axios.get('http://192.168.0.6:3333/search', {
+      params: {
+          latitude: latitude,
+          longitude: longitude
+        }
+      }).then(response => {
+        // console.log('teste2', response.data);
+        setPoints(response.data);
+      });
+
     }
 
     loadPosition();
   }, [])
 
-  useEffect(() => {
-    api.get('items').then(response => {
-      setItems(response.data);
-    });
-  }, [])
-
-  useEffect(() => {
-    api.get('points', {
-      // params: {
-      //   city: routeParams.selectdCity,
-      //   uf: routeParams.selectedUf,
-      //   items: selectedItems
-      // }
-    }).then(response => {
-      setPoints(response.data);
-    })
-  }, [selectedItems])
-
   function handleNavigateBack()
   {
       navigation.goBack();
+  }
+
+  function teste(coordinate: any)
+  {
+    console.log(coordinate.latitude,coordinate.longitude);
+
+    const newPoint = {
+      _id: "123",
+      citizen_id: "",
+      citizen_name: "teste",
+      ticket_type: "erro teste",
+      location: 
+      {
+        coordinates: [coordinate.latitude,coordinate.longitude] 
+      }
+    };
+
+    setPoints({...points, ...newPoint});
+
+    setCoordinate([
+      coordinate.latitude,
+      coordinate.longitude,
+    ]);
+  }
+
+  function handleNavigateToTicketRegister(coordinate: any) {
+    navigation.navigate('RegisterTicket', {coordinate: coordinate})
   }
 
   return (
@@ -96,99 +106,42 @@ const Points: React.FC = () => {
         </TouchableOpacity>
 
         <Text style={styles.title}>Bem vindo.</Text>
-        <Text style={styles.description}>Encontre no mapa os chamados abertos</Text>
+        <Text style={styles.description}>Encontre no mapa os chamados abertos e clique para abrir um novo</Text>
 
         <View style={styles.mapContainer}>
           {initialPosition[0] !== 0 && (
             <MapView
+              onPress={(event) => handleNavigateToTicketRegister(event.nativeEvent.coordinate)}
               style={styles.map}
               initialRegion={{
-                // latitude: initialPosition[0],
-                // longitude: initialPosition[1],
-                latitude: -23.5608844,
-                longitude: -46.6590967,
+                latitude: initialPosition[0],
+                longitude: initialPosition[1],
+                //latitude: -23.5608844,
+                //longitude: -46.6590967,
                 latitudeDelta: 0.014,
                 longitudeDelta: 0.014,
               }}>
 
-                <Marker
-                  coordinate={{
-                    latitude: -23.5631043,
-                    longitude: -46.6543825,
-                  }}>
-                     <View style={styles.mapMarkerContainer}>
-                    <Text style={styles.mapMarkerTitle}>vazamento de água</Text>
-                  </View>
-									<View style={styles.mapMarkerArrow}/>
-                </Marker>
-
-                <Marker
-                  coordinate={{
-                    latitude: -23.5608844,
-                    longitude: -46.6590967,
-                  }}>
-                     <View style={styles.mapMarkerContainer}>
-                    <Text style={styles.mapMarkerTitle}>buraco na rua</Text>
-                  </View>
-									<View style={styles.mapMarkerArrow}/>
-                </Marker>
-
-                <Marker
-                  coordinate={{
-                    latitude: -23.5567241,
-                    longitude: -46.6637097,
-                  }}>
-                   <View style={styles.mapMarkerContainer}>
-                    <Text style={styles.mapMarkerTitle}>sujeira na rua</Text>
-                  </View>
-									<View style={styles.mapMarkerArrow}/>
-                </Marker>
-
-              {/* {points.map(point => (
-                <Marker
-                  key={point.id}
+              {points.map(point => {
+                console.log(point.location.coordinates[1], point.location.coordinates[0]);
+                return (
+                  <Marker
+                  key={String(point._id)}
                   style={styles.mapMarker}
                   coordinate={{
-                    latitude: point.latitude,
-                    longitude: point.longitude,
-                    // latitude: -23.6489236,
-                    // longitude: -46.6394532,
+                    latitude: point.location.coordinates[1],
+                    longitude: point.location.coordinates[0],
                   }}>
                   <View style={styles.mapMarkerContainer}>
-                    <Image style={styles.mapMarkerImage} source={{ uri: point.image_url }} />
-                    <Text style={styles.mapMarkerTitle}>{point.name}</Text>
-                  </View>
-									<View style={styles.mapMarkerArrow}/>
+                    <Text style={styles.mapMarkerTitle}>{point.ticket_type}</Text>
+                  </View> 
+									{/* <View style={styles.mapMarkerArrow}/> */}
                 </Marker>
-              ))} */}
+                )
+              })}
             </MapView>
           )}
         </View>
-      </View>
-      <View style={styles.itemsContainer}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingHorizontal: 20
-          }}
-        >
-          {items.map(item => (
-            <TouchableOpacity
-              key={String(item.id)}
-              style={
-                [
-                  styles.item,
-                  selectedItems.includes(item.id) ? styles.selectedItem : {},
-                ]
-              }
-              activeOpacity={0.6}
-            >
-              <SvgUri width={42} height={42} uri={item.image_url} />
-              <Text style={styles.itemTitle}>{item.title}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
       </View>
     </>
   );
@@ -203,7 +156,7 @@ const styles = StyleSheet.create({
 
   title: {
     fontSize: 20,
-    fontFamily: 'Roboto_400Regular',
+    fontFamily: 'Roboto_500Medium',
     marginTop: 24,
   },
 
@@ -233,49 +186,51 @@ const styles = StyleSheet.create({
   },
 
   mapMarkerContainer: {
-    width: 150,
+    width: 200,
     height: 20,
-    backgroundColor: '#8000FF',
-    flexDirection: 'column',
+    backgroundColor: '#7f39fb',
+    flexDirection: 'row',
     borderRadius: 8,
     overflow: 'hidden',
-		alignItems: 'center',
 		position: "relative",
-		zIndex: 1
+    zIndex: 1,
+    justifyContent: "center",
+    alignContent: 'center',
+    textAlign: 'center'
   },
 
-  mapMarkerImage: {
-    width: 90,
-    height: 45,
-    resizeMode: 'cover',
-  },
+  // mapMarkerImage: {
+  //   width: 20,
+  //   height: 120,
+  //   resizeMode: 'cover',
+  // },
 
   mapMarkerTitle: {
     flex: 1,
     fontFamily: 'Roboto_400Regular',
     color: '#FFF',
     fontSize: 13,
-    lineHeight: 23,
+    lineHeight: 23
 	},
 	
-	mapMarkerArrow: {
-		position: "absolute",
-		borderTopWidth: 40,
-		borderTopColor: "#34CB79",
+	// mapMarkerArrow: {
+	// 	position: "absolute",
+	// 	borderTopWidth: 40,
+	// 	borderTopColor: "#34CB79",
 
-		borderLeftWidth: 50,
-		borderLeftColor: "transparent",
+	// 	borderLeftWidth: 50,
+	// 	borderLeftColor: "transparent",
 
-		borderRightWidth: 50,
-		borderRightColor: "transparent",
+	// 	borderRightWidth: 50,
+	// 	borderRightColor: "transparent",
 
-		width: 50,
-		bottom: -0.5,
-		right: 30,
-		left: -5,
-		zIndex: 0
+	// 	width: 50,
+	// 	bottom: -0.5,
+	// 	right: 30,
+	// 	left: -5,
+	// 	zIndex: 0
 
-	},
+	// },
 
   itemsContainer: {
     flexDirection: 'row',
