@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Feather as Icon, AntDesign } from '@expo/vector-icons';
 import { AppLoading } from 'expo';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { TouchableOpacity, Alert, View } from 'react-native';
 import * as Location from 'expo-location';
 import axios from 'axios';
@@ -36,6 +36,7 @@ const OpenTicket: React.FC = () => {
   const [points, setPoints] = useState<Point[]>([]);
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
   const { signOut } = useAuth();
 
   const [initialPosition, setInitialPosition] = useState<[number, number]>([
@@ -73,10 +74,12 @@ const OpenTicket: React.FC = () => {
           setPoints(response.data);
         });
     }
+    if (isFocused) {
+      loadPosition();
+    }
 
-    loadPosition();
     setLoading(false);
-  }, []);
+  }, [isFocused]);
 
   navigation.setOptions({
     headerLeft: () => (
