@@ -1,14 +1,14 @@
 import styled from 'styled-components/native';
 import { Platform } from 'react-native';
 
+import MapView, { Marker, Callout } from 'react-native-maps';
+
 import { RectButton } from 'react-native-gesture-handler';
 
 export const Header = styled.View`
-
   flex-direction: row;
   align-items: center;
   padding-top: 24px;
-
 `;
 
 export const Title = styled.Text`
@@ -21,9 +21,8 @@ export const Title = styled.Text`
 export const Container = styled.View`
   flex: 1;
   position: relative;
-  margin-top: 80px;
-
-  padding: 30px 20px ${Platform.OS === 'android' ? 150 : 40}px;
+  margin-bottom: 80px;
+  padding: 5px 20px ${Platform.OS === 'android' ? 110 : 20}px;
 `;
 
 export const InputView = styled.View`
@@ -37,14 +36,14 @@ export const InputView = styled.View`
   border-color: #f0e7fd;
   justify-content: center;
   margin-bottom: 20px;
-`
+`;
 
 export const TitleDescription = styled.Text`
-        font-size: 16px;
-        color: #f4ede8;
-        margin-top: 4px;
-        margin-bottom: 10px;
-        font-family: 'Roboto_400Regular';
+  font-size: 16px;
+  color: #f4ede8;
+  margin-top: 4px;
+  margin-bottom: 10px;
+  font-family: 'Roboto_400Regular';
 `;
 
 export const InputText = styled.View`
@@ -61,7 +60,7 @@ export const InputText = styled.View`
 
   flex-direction: row;
   align-items: center;
-`
+`;
 
 export const TextInput = styled.TextInput`
   flex: 1;
@@ -87,7 +86,57 @@ export const ButtonConfirm = styled(RectButton)`
 export const ButtonText = styled.Text`
   flex: 1;
   font-family: 'Roboto_500Medium';
-  color: #3C3C3C;
+  color: #3c3c3c;
   font-size: 18px;
   text-align: center;
+`;
+
+export const MapContainer = styled.View`
+  flex: 1;
+  width: 100%;
+  border-top-right-radius: 10px;
+  border-top-left-radius: 10px;
+  overflow: hidden;
+`;
+
+export const Map = styled(MapView)`
+  width: 100%;
+  height: 100%;
+`;
+
+export const MapMarker = styled(Marker)``;
+
+export const MapMarkerContainer = styled.View`
+  width: 180px;
+  height: 80px;
+  background-color: #7f39fb;
+  flex-direction: column;
+  border-radius: 10px;
+  padding: 14px;
+  z-index: 1;
+  justify-content: center;
+  align-content: center;
+`;
+
+export const MapMarkerTitle = styled.Text`
+  flex: 1;
+  font-family: Roboto_400Regular;
+  color: #fff;
+  font-size: 13px;
+  line-height: 20px;
+`;
+
+export const MapMarkerName = styled.Text`
+  flex: 1;
+  color: #fff9;
+  margin-top: 5px;
+`;
+
+export const MapMarkerCallout = styled(Callout)`
+  width: 180px;
+`;
+
+export const MapDescrition = styled.Text`
+  color: #fff;
+  padding: 12px;
 `;

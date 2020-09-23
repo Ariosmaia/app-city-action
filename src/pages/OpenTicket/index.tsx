@@ -1,10 +1,9 @@
 /* eslint-disable react/jsx-curly-newline */
 /* eslint-disable no-underscore-dangle */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Feather as Icon, AntDesign } from '@expo/vector-icons';
-import { AppLoading } from 'expo';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
-import { TouchableOpacity, Alert, View } from 'react-native';
+import { TouchableOpacity, Alert, View, Text } from 'react-native';
 import * as Location from 'expo-location';
 import axios from 'axios';
 import { useAuth } from '../../hooks/auth';
@@ -19,7 +18,8 @@ import {
   MapMarker,
   MapMarkerContainer,
   MapMarkerTitle,
-  MapMarkerArrow,
+  MapMarkerCallout,
+  MapMarkerName,
 } from './styles';
 
 interface Point {
@@ -34,10 +34,9 @@ interface Point {
 
 const OpenTicket: React.FC = () => {
   const [points, setPoints] = useState<Point[]>([]);
-  const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
   const isFocused = useIsFocused();
-  const { signOut } = useAuth();
+  const { signOut, citizen } = useAuth();
 
   const [initialPosition, setInitialPosition] = useState<[number, number]>([
     0,
@@ -46,7 +45,6 @@ const OpenTicket: React.FC = () => {
 
   useEffect(() => {
     async function loadPosition() {
-      setLoading(true);
       const { status } = await Location.requestPermissionsAsync();
 
       if (status !== 'granted') {
@@ -62,24 +60,32 @@ const OpenTicket: React.FC = () => {
       const { latitude, longitude } = location.coords;
 
       setInitialPosition([latitude, longitude]);
+    }
+    loadPosition();
+  }, []);
 
-      axios
-        .get('https://city-action.herokuapp.com/search', {
-          params: {
-            latitude,
-            longitude,
+  useEffect(() => {
+    async function loadTickets() {
+      try {
+        const response = await axios.get<Point[]>(
+          'https://city-action.herokuapp.com/search',
+          {
+            params: {
+              latitude: initialPosition[0],
+              longitude: initialPosition[1],
+            },
           },
-        })
-        .then(response => {
-          setPoints(response.data);
-        });
+        );
+
+        setPoints(response.data);
+      } catch (error) {
+        console.log(error);
+      }
     }
     if (isFocused) {
-      loadPosition();
+      loadTickets();
     }
-
-    setLoading(false);
-  }, [isFocused]);
+  }, [initialPosition, isFocused]);
 
   navigation.setOptions({
     headerLeft: () => (
@@ -98,13 +104,12 @@ const OpenTicket: React.FC = () => {
     ),
   });
 
-  function handleNavigateToTicketRegister(coordinate: any) {
-    navigation.navigate('RegisterTicket', { coordinate });
-  }
-
-  if (loading) {
-    return <AppLoading />;
-  }
+  const handleNavigateToTicketRegister = useCallback(
+    coordinate => {
+      navigation.navigate('RegisterTicket', { coordinate });
+    },
+    [navigation],
+  );
 
   return (
     <>
@@ -130,22 +135,25 @@ const OpenTicket: React.FC = () => {
                 longitudeDelta: 0.014,
               }}
             >
-              {points.map(point => {
-                return (
-                  <MapMarker
-                    key={String(point._id)}
-                    coordinate={{
-                      latitude: point.location.coordinates[1],
-                      longitude: point.location.coordinates[0],
-                    }}
-                  >
-                    <MapMarkerContainer>
-                      <MapMarkerTitle>{point.ticket_type}</MapMarkerTitle>
-                    </MapMarkerContainer>
-                    <MapMarkerArrow />
-                  </MapMarker>
-                );
-              })}
+              {!!points &&
+                points.map(point => {
+                  return (
+                    <MapMarker
+                      key={String(point._id)}
+                      coordinate={{
+                        latitude: point.location.coordinates[1],
+                        longitude: point.location.coordinates[0],
+                      }}
+                    >
+                      <MapMarkerCallout tooltip>
+                        <MapMarkerContainer>
+                          <MapMarkerTitle>{point.ticket_type}</MapMarkerTitle>
+                          <MapMarkerName>{point.citizen_name}</MapMarkerName>
+                        </MapMarkerContainer>
+                      </MapMarkerCallout>
+                    </MapMarker>
+                  );
+                })}
             </Map>
           )}
         </MapContainer>

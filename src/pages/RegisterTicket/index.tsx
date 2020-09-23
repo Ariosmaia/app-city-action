@@ -5,18 +5,18 @@ import {
   View,
   Platform,
   Picker,
-  StyleSheet,
   KeyboardAvoidingView,
   ScrollView,
   Alert,
+  StatusBar,
+  Text,
 } from 'react-native';
 
 import { useNavigation, useRoute } from '@react-navigation/native';
 
 import { MaterialIcons } from '@expo/vector-icons';
-import { TouchableOpacity, State } from 'react-native-gesture-handler';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
-import { AppLoading } from 'expo';
 import {
   Container,
   InputView,
@@ -24,8 +24,10 @@ import {
   TitleDescription,
   ButtonConfirm,
   ButtonText,
-  Title,
-  Header,
+  MapMarker,
+  MapContainer,
+  Map,
+  MapDescrition,
 } from './styles';
 import { useAuth } from '../../hooks/auth';
 import api from '../../services/api';
@@ -53,20 +55,20 @@ interface CitizenData {
 const RegisterTicket: React.FC = () => {
   const navigation = useNavigation();
 
+  const route = useRoute();
+  const routeParams = route.params as Params;
+
   const [description, setDescription] = useState('');
-  const [localization, setLocalization] = useState('');
+  const [localization, setLocalization] = useState<Params>(routeParams);
   const [ticketStatusId, setTicketStatusId] = useState('');
   const [serviceProvider, setServiceProvider] = useState('');
   const [ticketType, setTicketType] = useState([]);
 
-  const route = useRoute();
   const { token, citizen } = useAuth();
 
-  const routeParams = route.params as Params;
-
   useEffect(() => {
-    console.log('params', routeParams.coordinate);
-  }, []);
+    setLocalization(routeParams);
+  }, [routeParams]);
 
   async function handleCreateTicket() {
     const ticket = {
@@ -76,23 +78,20 @@ const RegisterTicket: React.FC = () => {
       ticketTypeId: ticketType,
       serviceProviderId: serviceProvider,
     };
-    // console.log(ticket);
     const ticketMongo = {
       citizen_id: citizen.id,
       citizen_name: citizen.name,
-      ticket_type: 'Vazamento de água 2',
+      ticket_type: description,
       latitude: routeParams.coordinate.latitude,
       longitude: routeParams.coordinate.longitude,
     };
 
     try {
-      console.log('chegou!', token);
       api.defaults.headers.Authorization = `Bearer ${token}`;
       const [tickets, ticketsMongo] = await Promise.all([
         api.post('tickets', ticket),
         axios.post('https://city-action.herokuapp.com/tickets', ticketMongo),
       ]);
-      //  console.log(response.data);
       navigation.navigate('OpenTicket');
     } catch (err) {
       Alert.alert(
@@ -101,8 +100,18 @@ const RegisterTicket: React.FC = () => {
     }
   }
 
+  function handleLocation(e) {
+    const location: Params = {
+      coordinate: {
+        latitude: e.latitude,
+        longitude: e.longitude,
+      },
+    };
+    setLocalization({ ...localization, ...location });
+  }
+
   navigation.setOptions({
-    title: 'Abrir chamado',
+    title: '',
 
     headerLeft: () => (
       <TouchableOpacity
@@ -111,22 +120,49 @@ const RegisterTicket: React.FC = () => {
         }}
       >
         <View style={{ marginLeft: 15 }}>
-          <MaterialIcons name="arrow-back" size={25} color="#fff" />
+          <MaterialIcons name="arrow-back" size={35} color="#7f39fb" />
         </View>
       </TouchableOpacity>
     ),
   });
   return (
     <>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor="transparent"
+        translucent
+      />
+
+      <MapContainer>
+        <Map
+          initialRegion={{
+            latitude: localization.coordinate.latitude,
+            longitude: localization.coordinate.longitude,
+            latitudeDelta: 0.014,
+            longitudeDelta: 0.014,
+          }}
+        >
+          <MapMarker
+            draggable
+            onDragEnd={e => {
+              handleLocation(e.nativeEvent.coordinate);
+            }}
+            coordinate={{
+              latitude: localization.coordinate.latitude,
+              longitude: localization.coordinate.longitude,
+            }}
+          />
+        </Map>
+      </MapContainer>
+      <MapDescrition>
+        Segure e arraste para a localização desejada!
+      </MapDescrition>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         enabled
       >
-        <ScrollView
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ flex: 1 }}
-        >
+        <ScrollView keyboardShouldPersistTaps="handled">
           <Container>
             <InputView>
               <Picker
@@ -136,7 +172,7 @@ const RegisterTicket: React.FC = () => {
                   setServiceProvider(itemValor);
                 }}
               >
-                <Picker.Item label="" value="0" />
+                <Picker.Item label="Selecione o prestador" value="0" />
                 <Picker.Item
                   label="Sabesp"
                   value="89BCCF2C-631B-41A3-AF17-6865444A4EFE"
@@ -151,7 +187,7 @@ const RegisterTicket: React.FC = () => {
                   setTicketType(itemValor);
                 }}
               >
-                <Picker.Item label="" value="0" />
+                <Picker.Item label="Selecione o tipo" value="0" />
                 <Picker.Item
                   label="Vazamento de água"
                   value="2F810939-F524-404B-A0D1-05D59CE1AA02"
@@ -167,6 +203,7 @@ const RegisterTicket: React.FC = () => {
             </View>
             <InputView>
               <TextInput
+                placeholder="Descreva brevemente o problema"
                 value={description}
                 onChangeText={text => setDescription(text)}
               />

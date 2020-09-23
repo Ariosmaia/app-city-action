@@ -1,7 +1,7 @@
 import styled from 'styled-components/native';
 import Constants from 'expo-constants';
 
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, Callout } from 'react-native-maps';
 
 export const Background = styled.View`
   width: 100%;
@@ -52,17 +52,13 @@ export const Map = styled(MapView)`
   height: 100%;
 `;
 
-export const MapMarker = styled(Marker)`
-  width: 150px;
-  height: 80px;
-  position: relative;
-`;
+export const MapMarker = styled(Marker)``;
 
-export const MapMarkerContainer = styled.Text`
-  width: 115px;
+export const MapMarkerContainer = styled.View`
+  width: 180px;
   height: 80px;
   background-color: #7f39fb;
-  flex-direction: row;
+  flex-direction: column;
   border-radius: 10px;
   padding: 14px;
   z-index: 1;
@@ -76,24 +72,14 @@ export const MapMarkerTitle = styled.Text`
   color: #fff;
   font-size: 13px;
   line-height: 20px;
-  position: relative;
 `;
 
-export const MapMarkerArrow = styled.Text`
-  position: absolute;
-  border-top-width: 20px;
-  border-top-color: #7f39fb;
+export const MapMarkerName = styled.Text`
+  flex: 1;
+  color: #fff9;
+  margin-top: 5px;
+`;
 
-  border-left-width: 50px;
-  border-left-color: transparent;
-
-  border-right-width: 50px;
-  border-right-color: transparent;
-
-  width: 200px;
-  height: 200px;
-  bottom: -50px;
-  right: 30px;
-  left: -5px;
-  z-index: 0;
+export const MapMarkerCallout = styled(Callout)`
+  width: 180px;
 `;
